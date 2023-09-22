@@ -1,13 +1,5 @@
-
-/// If you are using Common Anode Display, set `ON = LOW`.
-const bool ON = LOW; // HIGH value as ON state for CC display. 
-const bool OFF = !ON; // Reflect it, do not use LOW here.
-
-// LED Pin Array:       a,  b, c, d, e,  f,  g, dp
-byte LED_DISPLAY[] = {2, 3, 4, 5, 6, 7, 8, 9};
-
-// LED Digit Value Array: 0 to 9 for common cathode display
-byte DIGIT_CC[] = { 0xFC, 0x60, 0xDA, 0xF2, 0x66, 0xB6, 0xBE, 0xE0, 0xFE, 0xF6 };
+#include <SevSeg.h>
+SevSeg sevseg;
 
 int button1_pin = 12;
 int button2_pin = 11;
@@ -17,32 +9,24 @@ long a_day = 86400000;
 long last_irrigation = - a_day;
 bool pump_on = false;
 
-long min_to_milisec(long minutes){
-  return (minutes * 60 * 1000);
-}
-
-void displayDigit(byte digit) {
-  if (digit < 0 || digit > 9) { return; } // skip on invalid
-  //byte value = DIGIT_CC[digit];
-  byte value = ON ? DIGIT_CC[digit] : ~DIGIT_CC[digit];
-  byte i = 0, mask = 0b10000000;
-  while (i < 8) {
-    digitalWrite(LED_DISPLAY[i++], mask & value); 
-    mask >>= 1; 
-  }
-}
-
-
 void setup() {
+  // 7segment setup parameters
+  byte numDigits = 1;  // number of 7segment digits
+  byte digitPins = {}; // digit pins, left empty for one digit
+  // digits pins in order : {a, b, c, d, e, f, g, DP}
+  byte segmentPins[] = {2, 3, 4, 5, 6, 7, 8, 9};
+  bool resistorsOnSegments = true;
+  // the type of seven segment
+  byte hardwareConfig = COMMON_CATHODE;
+  // setup 7segment
+  sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments);
+  sevseg.setBrightness(90);
+
+  // set min modes
   Serial.begin(9600);
   pinMode(button1_pin, INPUT_PULLUP);
   pinMode(button2_pin, INPUT_PULLUP);
   pinMode(pump_pin, OUTPUT);
-  
-  
-  // 7 segment setup  
-  byte i = 0;
-  while (i < 8) { pinMode(LED_DISPLAY[i++], OUTPUT); }
   
 }
 
@@ -85,10 +69,8 @@ void loop() {
   }
   
   // sevseg display
-  displayDigit(irrigation_min); 
+  sevseg.setNumber(irrigation_min);
+  sevseg.refreshDisplay();
   delay(100);
   
 }
-
-
-
