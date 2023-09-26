@@ -4,6 +4,7 @@ SevSeg sevseg;
 int button1_pin = 12;
 int button2_pin = 11;
 int pump_pin = 13;
+int buzzer_pin = 10;
 long irrigation_min = 5;
 long a_day = 86400000;
 long last_irrigation = - a_day;
@@ -27,17 +28,26 @@ void setup() {
   pinMode(button1_pin, INPUT_PULLUP);
   pinMode(button2_pin, INPUT_PULLUP);
   pinMode(pump_pin, OUTPUT);
+  pinMode(buzzer_pin, OUTPUT);
   
 }
 
+void sound_buzzer(int milli_seconds = 500){
+    // turn on buzzer for a second and turn off
+    digitalWrite(buzzer_pin, HIGH);
+    delay(milli_seconds);
+    digitalWrite(buzzer_pin, LOW);
+    delay(milli_seconds);
+}
 
 void loop() {
   
-  long irrigation_time = irrigation_min * 60 * 1000;
+  long irrigation_time = irrigation_min * 1000;
   
   // check pupm state
   if(!pump_on && (millis() - last_irrigation > a_day)){
     // turn on the pump
+  	sound_buzzer();
   	digitalWrite(pump_pin, HIGH);
     pump_on = true;
     last_irrigation = millis();
@@ -46,6 +56,8 @@ void loop() {
   // chcek for irrigation done
   if(pump_on && millis() - last_irrigation > irrigation_time){
     // turn off the pump
+    sound_buzzer();
+    sound_buzzer();
   	digitalWrite(pump_pin, LOW);
     pump_on = false;
   }
