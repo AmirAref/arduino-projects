@@ -44,7 +44,7 @@ void loop() {
   }
    
   // chcek for irrigation done
-  if(millis() - last_irrigation > irrigation_time){
+  if(pump_on && millis() - last_irrigation > irrigation_time){
     // turn off the pump
   	digitalWrite(pump_pin, LOW);
     pump_on = false;
