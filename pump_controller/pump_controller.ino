@@ -16,12 +16,12 @@ int pump_pin = 13;
 int buzzer_pin = 10;
 long irrigation_min = 5;
 long a_day = 86400000;
-long last_irrigation = - a_day;
+long last_irrigation = - a_day + 10000;
 bool pump_on = false;
 
 
 
-int min_to_milisec(int minutes){
+long min_to_milisec(long minutes){
   return minutes * 60 * 1000;
 }
 
@@ -45,8 +45,10 @@ void setup() {
   Serial.begin(9600);
   pinMode(button1_pin, INPUT_PULLUP);
   pinMode(button2_pin, INPUT_PULLUP);
-  pinMode(pump_pin, OUTPUT);
   pinMode(buzzer_pin, OUTPUT);
+  // default pump is off
+  digitalWrite(pump_pin, HIGH); // Relay module works opposite
+  pinMode(pump_pin, OUTPUT);
   
 }
 
@@ -60,13 +62,13 @@ void sound_buzzer(int milli_seconds = 500){
 
 void loop() {
   
-  long irrigation_time = irrigation_min * 1000;
+  long irrigation_time = min_to_milisec(irrigation_min);
   
   // check pupm state
   if(!pump_on && (millis() - last_irrigation > a_day)){
     // turn on the pump
   	sound_buzzer();
-  	digitalWrite(pump_pin, HIGH);
+  	digitalWrite(pump_pin, LOW); // Relay module works opposite
     pump_on = true;
     last_irrigation = millis();
   }
@@ -76,7 +78,7 @@ void loop() {
     // turn off the pump
     sound_buzzer();
     sound_buzzer();
-  	digitalWrite(pump_pin, LOW);
+  	digitalWrite(pump_pin, HIGH); // Relay module works opposite
     pump_on = false;
   }
 
@@ -90,12 +92,14 @@ void loop() {
 
   // irrigration_min is in range 1,9
   // decrease the time
-  if(button1_state == 0 && irrigation_min >= 2){
-    irrigation_min--;
-  }
-  // increase the time
-  else if(button2_state == 0 && irrigation_min <= 8){
-    irrigation_min++;
+  if(!pump_on){
+    if(button1_state == 0 && irrigation_min >= 2){
+      irrigation_min--;
+    }
+    // increase the time
+    else if(button2_state == 0 && irrigation_min <= 8){
+      irrigation_min++;
+    }
   }
   
   // sevseg display
